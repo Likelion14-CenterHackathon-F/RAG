@@ -1,0 +1,91 @@
+name: CI with RAG
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-rag-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Dockerfile 이 python:3.11-slim 을 쓰므로 검증도 같은 버전으로 한다.
+  PYTHON_VERSION: "3.11"
+  IMAGE: ${{ secrets.DOCKER_USERNAME }}/centerton-rag
+
+jobs:
+  build:
+    name: Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # 계약 테스트와 룰북 검증은 표준 라이브러리만 쓴다. torch 나 psycopg 를 설치하지
+      # 않아도 돌기 때문에 pip install 단계를 두지 않는다. 의존성을 설치하면 CI 가
+      # 수 분 길어지고, 정작 여기서 잡아야 하는 회귀는 전부 순수 로직이다.
+      - name: Contract tests
+        run: PYTHONPATH=. python -m unittest discover -s tests -t . -v
+
+      # 룰북과 회귀 스위트가 어긋나면 실패한다. Java 매처도 같은 스위트로 채점되므로
+      # 두 구현이 갈라지는 것을 양쪽에서 잡는다.
+      - name: Validate emergency rules
+        run: python rag_rulebook/tools/validate_emergency_rules.py
+
+      - name: Validate triage scenarios
+        run: python rag_rulebook/tools/validate_triage.py
+
+      # 기본 색인 90건의 구성과 매니페스트 일치, safety_only/out_of_scope 혼입 여부,
+      # chain_of_thought 누출을 확인한다.
+      - name: Validate dataset baseline
+        run: python rag_rulebook/tools/validate_dataset_baseline.py
+
+      - name: Compile all sources
+        run: python -m compileall -q centerton_rag rag_rulebook scripts verification
+
+  docker-push:
+    name: Docker Build & Push
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_RECORD_UPLOAD: false
+      DOCKER_BUILD_SUMMARY: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 이미지에는 KURE 가중치가 들어가지 않는다. 2.1GB 라서 이미지가 그만큼 커지고
+      # Docker Hub 왕복이 느려지기 때문에, 서버의 HuggingFace 캐시 볼륨에 한 번만
+      # 내려받아 재사용한다(cd.yml 참고).
+      - name: Build & Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          provenance: false
+          sbom: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}

@@ -1,0 +1,95 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI with RAG"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ${{ secrets.DOCKER_USERNAME }}/centerton-rag
+  CONTAINER_NAME: centerton-rag
+  DOCKER_NETWORK: centerton-net
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            APP_HOME=/home/${{ secrets.SERVER_USER }}
+            ENV_PATH="$APP_HOME/rag.env"
+            # KURE-v1 가중치 2.1GB 를 담는다. 이 볼륨이 없으면 컨테이너를 새로 만들 때마다
+            # HuggingFace 에서 2.1GB 를 다시 받는다.
+            HF_CACHE="$APP_HOME/hf-cache"
+
+            echo "${{ secrets.RAG_ENV_FILE }}" > "$ENV_PATH"
+            chmod 600 "$ENV_PATH"
+
+            echo "[1/6] Ensure network and model cache..."
+            docker network create ${{ env.DOCKER_NETWORK }} || true
+            mkdir -p "$HF_CACHE"
+
+            echo "[2/6] Pull latest image..."
+            docker pull ${{ env.IMAGE }}:latest
+
+            echo "[3/6] Restart container..."
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+
+            # -p 를 쓰지 않는다. Spring 만 http://centerton-rag:8001 로 도커 네트워크
+            #   안에서 호출하며, 외부에 노출할 이유가 없다. 이 서비스는 인증이 없다.
+            # --memory 2g: 실측 피크 RSS 는 약 800MB 다. 남는 여유는 mmap 된 모델
+            #   페이지 캐시로 쓰이므로 넉넉히 준다. 4GB 서버에서 Spring 몫을 남기는 상한.
+            # OMP_NUM_THREADS: 소형 서버에서 torch 가 코어 수만큼 스레드를 띄우면
+            #   컨텍스트 스위칭으로 오히려 느려진다.
+            docker run -d --name ${{ env.CONTAINER_NAME }} \
+              --network ${{ env.DOCKER_NETWORK }} \
+              --env-file "$ENV_PATH" \
+              -e OMP_NUM_THREADS=2 \
+              -v "$HF_CACHE:/root/.cache/huggingface" \
+              --memory 2g \
+              --memory-swap 3g \
+              --restart unless-stopped \
+              ${{ env.IMAGE }}:latest
+
+            echo "[4/6] Wait for health..."
+            for i in $(seq 1 30); do
+              if docker exec ${{ env.CONTAINER_NAME }} \
+                   python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).read()" 2>/dev/null; then
+                echo "healthy after ${i}0s"
+                break
+              fi
+              sleep 10
+            done
+
+            # 임베딩 모델은 첫 요청에서 지연 로딩된다. 로컬 실측으로 모델 로드가 8.6초,
+            # 웜업 없는 첫 요청 전체가 18.9초였고 이후는 5초대였다. 배포 직후 첫 환자가
+            # 그 지연을 맞지 않도록 여기서 미리 로드한다. 최초 배포에서는 2.1GB 다운로드가
+            # 포함되므로 몇 분 걸릴 수 있다.
+            echo "[5/6] Warm up KURE (first deploy downloads 2.1GB)..."
+            docker exec ${{ env.CONTAINER_NAME }} python -c "
+            from centerton_rag.main import get_embedding_model
+            model = get_embedding_model()
+            print('embedding dim:', len(model.encode(['워밍업'], normalize_embeddings=True)[0]))
+            " || echo "warm-up failed, first request will be slow"
+
+            echo "[6/6] Status and cleanup..."
+            docker ps --filter "name=${{ env.CONTAINER_NAME }}"
+            docker exec ${{ env.CONTAINER_NAME }} \
+              python -c "import urllib.request,json; print(json.dumps(json.loads(urllib.request.urlopen('http://127.0.0.1:8001/health').read()), ensure_ascii=False, indent=2))" || true
+            docker image prune -f
