@@ -1,0 +1,94 @@
+{
+  "version": "2026-08-01-mvp",
+  "pipeline_order": [
+    "normalize_user_input",
+    "run_emergency_rules",
+    "extract_context",
+    "retrieve_rag_documents",
+    "score_response_route",
+    "generate_guarded_answer",
+    "log_triage_result"
+  ],
+  "routes": {
+    "hard_stop": {
+      "when": "emergency_rules matched",
+      "llm_allowed": false,
+      "rag_allowed": false,
+      "frontend_cta": ["global_medical_summary_report", "nearest_hospital"],
+      "owner": "system_rule"
+    },
+    "video_consult": {
+      "when": "no hard-stop, but high anxiety, low image confidence, rhinoplasty asymmetry, or unresolved concerning symptom",
+      "llm_allowed": true,
+      "rag_allowed": true,
+      "frontend_cta": ["video_consult_booking"],
+      "owner": "llm_plus_policy"
+    },
+    "rag_answer": {
+      "when": "normal post-care question or expected mild symptom",
+      "llm_allowed": true,
+      "rag_allowed": true,
+      "frontend_cta": [],
+      "owner": "llm_plus_rag"
+    },
+    "clarify": {
+      "when": "procedure, date, symptom, or photo context is insufficient",
+      "llm_allowed": true,
+      "rag_allowed": true,
+      "frontend_cta": ["ask_followup"],
+      "owner": "llm_plus_policy"
+    }
+  },
+  "context_fields": [
+    "procedure_name",
+    "department",
+    "days_after_procedure",
+    "symptom_keywords",
+    "body_part",
+    "image_attached",
+    "image_confidence",
+    "patient_anxiety_score",
+    "risk_rule_id"
+  ],
+  "video_consult_triggers": [
+    {
+      "id": "VC-01",
+      "name": "rhinoplasty_asymmetry_or_shape_anxiety",
+      "scope": "rhinoplasty",
+      "keywords": ["비대칭", "짝짝이", "휜", "코끝", "재수술", "망한", "이상한 것 같"],
+      "days_after_procedure": "D+0-D+180",
+      "route": "video_consult",
+      "message_hint": "부기로 인해 일시적으로 달라 보일 수 있으나, 정확한 확인과 안심을 위해 화상상담을 권장합니다."
+    },
+    {
+      "id": "VC-02",
+      "name": "low_confidence_image",
+      "scope": "common_all_procedures",
+      "keywords": [],
+      "image_confidence_max": 0.65,
+      "route": "video_consult",
+      "message_hint": "사진만으로는 정확한 판단이 어려워 화상상담 또는 병원 확인을 권장합니다."
+    },
+    {
+      "id": "VC-03",
+      "name": "high_anxiety_without_hard_risk",
+      "scope": "common_all_procedures",
+      "keywords": ["너무 불안", "무서워", "큰일", "재수술", "망한", "괜찮은 거 맞", "걱정돼"],
+      "route": "video_consult",
+      "message_hint": "불안이 큰 상태로 보여 정확한 확인과 안심을 위해 상담 연결을 권장합니다."
+    }
+  ],
+  "response_guardrails": {
+    "must": [
+      "응급 룰 매칭 시 hard-coded 메시지만 출력",
+      "정상 범주 답변에도 경과 관찰 기준을 포함",
+      "시술 병원 지침이 있으면 병원 지침을 우선한다고 안내",
+      "이미지 분석은 추정으로만 표현"
+    ],
+    "must_not": [
+      "감염, 괴사, 재수술 필요 여부를 확정 진단하지 않기",
+      "약 처방, 항생제 복용, 시술 부위 직접 처치를 지시하지 않기",
+      "응급 키워드가 있는데 쿨링팩이나 보습 등 일반 관리법으로 마무리하지 않기"
+    ]
+  }
+}

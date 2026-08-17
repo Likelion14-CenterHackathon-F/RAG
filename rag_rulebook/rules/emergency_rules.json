@@ -1,0 +1,193 @@
+{
+  "version": "2026-08-15-mvp-rules-v3.1",
+  "description": "LLM/RAG보다 먼저 실행하는 의료 안전 hard-stop 룰셋입니다.",
+  "normalization": {
+    "case": "lower",
+    "strip_spaces": true,
+    "normalize_korean": true,
+    "keyword_text_form": "compact",
+    "pattern_text_form": "spaced",
+    "number_aliases": {
+      "삼십팔도": "38도",
+      "서른여덟도": "38도"
+    },
+    "notes": [
+      "compact = NFC -> lower -> 모든 공백 제거 -> number_aliases. trigger_keywords 평가에 사용합니다.",
+      "spaced = NFC -> lower -> 연속 공백을 단일 공백으로 축약 후 trim -> number_aliases. trigger_patterns 평가에 사용합니다.",
+      "공백을 제거하면 어절 경계가 사라져 환자가 쓰지 않은 토큰이 생깁니다. '약을 먹고 열이 내렸어요'는 '약을먹고열이내렸어요'가 되어 '고열이'를 포함하므로, 고열 룰이 안심 문의를 hard-stop 합니다. 경계가 이미 소실되어 lookbehind로 복구할 수 없으므로 정규식은 반드시 spaced 형태에서 평가해야 합니다.",
+      "패턴은 공백이 선택적인 자리에 \\s* 를 쓰고, 인접이 필수인 자리에는 \\s 를 쓰지 않는 방식으로 작성합니다. '고열'은 한 단어여야 하고 '열 이'는 나뉠 수 있습니다."
+    ]
+  },
+  "negation_guards": {
+    "description": "환자가 '그 증상은 없다'고 보고하는 문장을 hard-stop 하지 않기 위한 억제 규칙입니다. 매칭된 span 바로 뒤(remainder)에 앵커링해 평가하며, 매칭이 발견된 텍스트 형태(compact 또는 spaced)의 remainder를 사용합니다.",
+    "safety_note": "부정어 '안'을 단독 억제 토큰으로 절대 추가하지 않습니다. 한국어에서 '열이 안 떨어져요', '피가 안 멈춰요', '눈이 안 보여요'는 증상이 지속된다는 뜻이므로 실제 응급입니다. 억제는 명시적 비발생 형태('~지 않', '없', '아니')로 한정합니다.",
+    "patterns": [
+      "^(?:은|는|이|가|도|만)?\\s*없",
+      "^.{0,3}지\\s*(?:는|도|를)?\\s*않",
+      "^.{0,3}지\\s*(?:는|도)?\\s*아니",
+      "^같(?:은|던)?\\s*(?:건|것|증상|느낌)?\\s*(?:은|는|이)?\\s*없"
+    ],
+    "authoring_note": "증상 지속을 뜻하는 '~지 않' 형태를 패턴으로 잡을 때는 최소한 '지'까지 소비해야 합니다. 트리거가 '지' 앞에서 끝나면 remainder가 '지 않...'이 되어 이 억제 규칙에 걸리고, 지속을 호소하는 응급이 미탐됩니다.",
+    "known_limitations": [
+      "복합 부정('고름이나 악취는 없습니다')은 첫 트리거의 remainder가 부정형이 아니므로 억제되지 않고 hard-stop 됩니다. 보수적 실패 방향이므로 허용하되, 추후 개선 대상입니다."
+    ]
+  },
+  "rules": [
+    {
+      "id": "RISK-01",
+      "name": "suspected_infection_discharge",
+      "scope": "common_all_procedures",
+      "trigger_keywords": ["고름", "악취", "냄새나요", "썩은 냄새", "진물이 노래요"],
+      "trigger_patterns": [
+        "(?:노란|노란색|누런|황색|녹색|초록색)\\s*(?:액체|진물|분비물|고름)"
+      ],
+      "pattern_notes": [
+        "색상과 분비물의 조합을 패턴으로 처리합니다. 키워드로 열거하면 '노란 분비물'은 잡고 '노란색 분비물'은 놓치는 문제가 생깁니다.",
+        "분비물 명사를 액체·진물·분비물·고름으로 한정합니다. 단독 '물'을 넣으면 '노란색 물감' 같은 표현이 오탐됩니다."
+      ],
+      "risk_level": "high",
+      "match_policy": "any_keyword_or_pattern",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_nearest_hospital_cta"],
+      "frontend_message": "감염 위험이 의심되는 증상입니다. 즉시 현지의 가까운 응급실 또는 병원에 방문해 주세요. 정확한 처치를 위해 화면의 [글로벌 의료요약리포트]를 현지 의료진에게 제시해 주시기 바랍니다.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["NHS/GOSH surgical wound infection signs", "UCLH surgical wound infection signs"]
+    },
+    {
+      "id": "RISK-02",
+      "name": "fever_or_chills_after_procedure",
+      "scope": "common_all_procedures",
+      "trigger_keywords": ["38도", "38.0", "38.5", "39도", "오한이 나요", "식은땀이 나요"],
+      "trigger_patterns": [
+        "(?:38(?:\\.\\d)?|39(?:\\.\\d)?|40(?:\\.\\d)?)\\s*도",
+        "열\\s*이?\\s*펄\\s*펄",
+        "열\\s*이?\\s*(?:나요|나고|나는|났어|납니다|난다|올라|올랐|치솟)",
+        "열\\s*이?\\s*계속",
+        "열\\s*이?\\s*(?:안\\s*(?:떨어|내려|가라앉)|(?:떨어지|내려가|가라앉)지\\s*않)",
+        "열\\s*이?\\s*(?:심해|심하)",
+        "(?:고열|발열)",
+        "(?:오한|식은땀)\\s*(?:이|을)?\\s*(?:나요|나고|납니다|들어|들고|있어|심해|동반|계속)",
+        "몸살\\s*(?:기운|처럼|같).{0,10}(?:열|오한|고열|식은땀)"
+      ],
+      "pattern_notes": [
+        "'고열'과 '발열'은 spaced 형태에서 인접해야 하므로 '먹고 열이'는 매칭되지 않습니다.",
+        "발열 지속은 '안 떨어'와 '떨어지지 않' 두 계열의 어미를 모두 포함합니다. 하나만 넣으면 같은 의미의 다른 어미가 미탐됩니다.",
+        "지속 패턴은 최소한 '지'까지 소비해야 합니다. '열이 떨어'에서 끊으면 remainder가 '지 않아요'가 되어 negation_guards에 억제되고 미탐이 됩니다. '지'나 '않'까지 소비하면 remainder가 각각 ' 않아요'와 '아요'가 되어 억제되지 않습니다.",
+        "'열이 없어요', '열이 내렸어요', '열이 떨어졌어요'는 어떤 대안에도 해당하지 않아 매칭되지 않습니다."
+      ],
+      "risk_level": "high",
+      "match_policy": "any_keyword_or_pattern",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_nearest_hospital_cta"],
+      "frontend_message": "고열 또는 오한은 빠른 확인이 필요할 수 있습니다. 즉시 현지 병원에 방문하시고, [글로벌 의료요약리포트]를 현지 의료진에게 전달해 주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["NHS/GOSH surgical wound infection signs", "Guy's and St Thomas' surgical wound guidance"]
+    },
+    {
+      "id": "RISK-03",
+      "name": "uncontrolled_bleeding",
+      "scope": "rhinoplasty_or_surgery",
+      "trigger_keywords": ["피가 안 멈춰요", "지혈이 안", "피가 계속", "피나요 계속", "피가 줄줄"],
+      "trigger_patterns": [
+        "피(?!부)\\s*(?:가|는|나)\\s*.{0,10}(?:안\\s*멈|멈추지\\s*않|계속|줄줄|많이|심해)",
+        "출혈\\s*이?\\s*.{0,10}(?:안\\s*멈|멈추지\\s*않|계속|많이|심해)",
+        "지혈\\s*이?\\s*(?:안\\s*(?:돼|되|됩|해)|되지\\s*않)",
+        "계속\\s*피(?!부)\\s*(?:가|나|흘러|묻어)",
+        "(?:거즈|압박).{0,12}(?:해도|했는데).{0,14}(?:피|출혈).{0,10}(?:계속|안\\s*멈|멈추지\\s*않)"
+      ],
+      "pattern_notes": [
+        "'피' 뒤에 '부'가 오는 경우를 배제해 '피부가 계속 건조해요'가 출혈로 오탐되지 않게 합니다.",
+        "단독 '멈'은 대안에 넣지 않습니다. '출혈이 있었지만 지금은 멈췄어요'가 응급으로 분류되면 안 됩니다."
+      ],
+      "risk_level": "high",
+      "match_policy": "any_keyword_or_pattern",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_emergency_cta"],
+      "frontend_message": "지혈이 되지 않는 경우 즉각적인 처치가 필요할 수 있습니다. 지체하지 말고 현지 응급실 또는 병원으로 이동해 주세요. [글로벌 의료요약리포트]를 다운로드하여 현지 의료진에게 보여주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["Post-operative wound care guidance"]
+    },
+    {
+      "id": "RISK-04",
+      "name": "severe_pain_necrosis_or_open_wound",
+      "scope": "common_all_procedures",
+      "trigger_keywords": ["극심한 통증", "참을 수 없는 통증", "검게 변", "까맣게 변", "괴사", "상처가 벌어", "실밥이 터", "피부가 죽"],
+      "risk_level": "high",
+      "match_policy": "any_keyword",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_nearest_hospital_cta"],
+      "frontend_message": "상처 벌어짐, 피부색 변화, 극심한 통증은 빠른 진료가 필요한 신호일 수 있습니다. 즉시 현지 병원에 방문하시고 [글로벌 의료요약리포트]를 제시해 주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["NHS/GOSH surgical wound infection signs", "UCLH wound care guidance"]
+    },
+    {
+      "id": "RISK-05",
+      "name": "breathing_or_vision_warning",
+      "scope": "rhinoplasty_or_face_procedure",
+      "trigger_keywords": ["숨쉬기 힘들", "호흡곤란", "숨이 안 쉬", "시야가 흐", "눈이 안 보여", "눈 통증"],
+      "trigger_patterns": [
+        "(?<![가-힣])복시"
+      ],
+      "pattern_notes": [
+        "'복시'를 키워드로 두면 '회복시기'가 오탐됩니다. 앞에 한글 음절이 붙지 않는 경우만 매칭합니다.",
+        "'회복 시간'은 spaced 형태에서 '복'과 '시' 사이에 공백이 있어 매칭되지 않습니다."
+      ],
+      "risk_level": "high",
+      "match_policy": "any_keyword_or_pattern",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_emergency_cta"],
+      "frontend_message": "호흡 곤란 또는 시야 이상은 즉시 확인이 필요한 증상입니다. 현지 응급실 또는 병원으로 바로 이동해 주세요. [글로벌 의료요약리포트]를 현지 의료진에게 보여주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["MVP clinical safety rule"]
+    },
+    {
+      "id": "RISK-06",
+      "name": "rapid_allergic_reaction",
+      "scope": "common_all_procedures",
+      "trigger_keywords": ["입술이 부었", "두드러기", "숨 막혀", "알레르기 쇼크", "전신 발진"],
+      "trigger_patterns": [
+        "(?<![가-힣])목\\s*이?\\s*(?:붓|부어|부었)"
+      ],
+      "pattern_notes": [
+        "'목이 붓'을 키워드로 두면 '발목이 붓어서', '손목이 붓는'이 전신 알레르기로 오탐됩니다. 앞에 한글 음절이 붙지 않는 경우만 매칭합니다."
+      ],
+      "risk_level": "high",
+      "match_policy": "any_keyword_or_pattern",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_emergency_cta"],
+      "frontend_message": "전신 알레르기 반응이 의심될 수 있습니다. 숨이 차거나 목·입술이 붓는 경우 즉시 현지 응급실로 이동해 주세요. [글로벌 의료요약리포트]를 현지 의료진에게 제시해 주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["MVP clinical safety rule"]
+    },
+    {
+      "id": "RISK-07",
+      "name": "filler_vascular_or_neurologic_warning",
+      "scope": "dermal_filler_or_face_injection",
+      "trigger_keywords": ["필러 맞고 시야", "필러 맞고 눈", "필러 후 눈", "시야가 갑자기", "앞이 안 보여", "피부가 하얗게", "피부가 회색", "피부가 파랗게", "파랗게 변", "창백해졌", "한쪽 마비", "한쪽 힘이", "말이 어눌", "얼굴이 처져", "심한 두통", "갑자기 어지러"],
+      "risk_level": "high",
+      "match_policy": "any_keyword",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_emergency_cta"],
+      "frontend_message": "필러 후 시야 이상, 피부가 하얗거나 파랗게 변하는 증상, 한쪽 힘 빠짐·말 어눌함은 즉시 진료가 필요한 신호일 수 있습니다. 지체하지 말고 현지 응급실 또는 시술 병원으로 바로 이동해 주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["FDA dermal fillers soft tissue fillers", "ASPS dermal fillers risks and safety"]
+    },
+    {
+      "id": "RISK-08",
+      "name": "botulinum_toxin_spread_warning",
+      "scope": "botulinum_toxin_injection",
+      "trigger_keywords": ["보톡스 맞고 숨", "보툴리눔 맞고 숨", "삼키기 힘들", "삼킴 곤란", "목 넘기기 힘들", "말이 어눌", "발음이 어눌", "근육 힘이 빠", "온몸에 힘이", "호흡 문제"],
+      "risk_level": "high",
+      "match_policy": "any_keyword",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_emergency_cta"],
+      "frontend_message": "보툴리눔 톡신 시술 후 숨쉬기 어렵거나 삼키기 어렵고, 말이 어눌하거나 근육 힘이 빠지는 증상은 즉시 확인이 필요합니다. 현지 응급실 또는 병원으로 바로 이동해 주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["ASPS botulinum toxin risks and safety", "FDA dermal filler do's and don'ts"]
+    },
+    {
+      "id": "RISK-09",
+      "name": "laser_severe_skin_reaction",
+      "scope": "laser_skin_treatment",
+      "trigger_keywords": ["레이저 후 물집", "과도한 물집", "참기 힘든 통증", "심한 붉음", "심하게 붓", "화상 같", "피부손상", "피부가 벗겨", "진물이 나"],
+      "risk_level": "high",
+      "match_policy": "any_keyword",
+      "system_actions": ["stop_chatbot", "activate_global_medical_summary_report", "notify_hospital_cs", "show_nearest_hospital_cta"],
+      "frontend_message": "레이저 시술 후 참기 힘든 통증, 과도한 물집, 심한 붉음·붓기, 피부손상은 임의 처치보다 빠른 확인이 필요합니다. 치료받은 병의원에 즉시 연락하거나 가까운 병원에 방문해 주세요.",
+      "llm_policy": "block_freeform_generation",
+      "source_refs": ["MFDS medical laser safety guide", "MFDS medical laser skin treatment device information"]
+    }
+  ]
+}

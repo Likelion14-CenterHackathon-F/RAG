@@ -1,0 +1,54 @@
+[
+  {
+    "slug": "kdca_acute_mi",
+    "title": "질병관리청 국가건강정보포털 급성 심근경색증",
+    "institution": "질병관리청",
+    "url": "https://health.kdca.go.kr/healthinfo/biz/health/gnrlzHealthInfo/gnrlzHealthInfo/gnrlzHealthInfoView.do?cntnts_sn=6770",
+    "bucket": "out_of_scope",
+    "reason": "심근경색 상세 정보는 성형/피부미용 사후관리 RAG 범위를 벗어남. 흉통 hard-stop은 법령/응급 기준으로 충분.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_official/html/kdca_acute_mi.html",
+    "raw_text_path": "sources/raw_official/text/kdca_acute_mi.txt",
+    "partitioned_text_path": "sources/official_by_use/out_of_scope/kdca_acute_mi.txt",
+    "text_sha256": "ed1b1e5841aae9ae72fb187fad5f0546e2516cf710d50a20d13945e0f2c15d75"
+  },
+  {
+    "slug": "kdca_stroke_119",
+    "title": "질병관리청 뇌졸중 조기증상 의심되면 즉시 119",
+    "institution": "질병관리청",
+    "url": "https://www.kdca.go.kr/bbs/kdca/47/218748/artclView.do",
+    "bucket": "out_of_scope",
+    "reason": "뇌졸중 상세 정보는 현재 서비스 범위 밖. 편측마비 등은 일반 응급 룰 키워드로만 관리.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_official/html/kdca_stroke_119.html",
+    "raw_text_path": "sources/raw_official/text/kdca_stroke_119.txt",
+    "partitioned_text_path": "sources/official_by_use/out_of_scope/kdca_stroke_119.txt",
+    "text_sha256": "3810001250510d68989e578b1257f544e01e4c5db4bbd957befb6d7c42970624"
+  },
+  {
+    "slug": "egen_heat_illness",
+    "title": "E-Gen 열사병/일사병 응급처치",
+    "institution": "중앙응급의료센터 E-Gen",
+    "url": "https://www.e-gen.or.kr/egen/heat_iced_damage.do?contentsno=35",
+    "bucket": "out_of_scope",
+    "reason": "열사병/일사병은 피부미용 사후관리와 직접 연결성이 낮음.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_official/html/egen_heat_illness.html",
+    "raw_text_path": "sources/raw_official/text/egen_heat_illness.txt",
+    "partitioned_text_path": "sources/official_by_use/out_of_scope/egen_heat_illness.txt",
+    "text_sha256": "1755e3e3aa42b8a67b77ff4ce2352fda2fa6a17f74fb87fd2f22c7b37b22af7b"
+  },
+  {
+    "slug": "egen_foreign_body_throat",
+    "title": "E-Gen 목 이물질 응급처치",
+    "institution": "중앙응급의료센터 E-Gen",
+    "url": "https://www.e-gen.or.kr/egen/foreign_material.do?contentsno=29",
+    "bucket": "out_of_scope",
+    "reason": "목 이물질/기도 폐쇄는 현재 서비스 도메인 밖. 일반 응급 룰로만 처리.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_official/html/egen_foreign_body_throat.html",
+    "raw_text_path": "sources/raw_official/text/egen_foreign_body_throat.txt",
+    "partitioned_text_path": "sources/official_by_use/out_of_scope/egen_foreign_body_throat.txt",
+    "text_sha256": "5ac189b748addac087e81b66e565f0db7e15786d517b9899aef94a89aea6e7d7"
+  }
+]

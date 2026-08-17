@@ -1,0 +1,66 @@
+{
+  "version": "2026-08-15-expanded-corpus",
+  "principle": "Index broad data only with explicit trust, scope, and routing metadata. Emergency and out-of-scope official documents remain excluded from patient-answer retrieval.",
+  "default_patient_answer_index": [
+    {
+      "path": "rag/mvp_care_knowledge.jsonl",
+      "trust_level": "curated",
+      "use": "Primary post-care answer guidance",
+      "count": 17
+    },
+    {
+      "path": "derived/official_rag_candidate_chunks.jsonl",
+      "trust_level": "official",
+      "use": "Official wound/scar/urticaria reference chunks",
+      "count": 15
+    },
+    {
+      "path": "derived/trusted_rag_candidate_chunks.jsonl",
+      "trust_level": "official_or_professional",
+      "use": "MFDS/FDA/AAD/ASPS skin-aesthetic aftercare and recovery chunks",
+      "count": 58
+    }
+  ],
+  "expanded_reference_index": [
+    {
+      "path": "derived/skin_care_ingredient_rag.jsonl",
+      "trust_level": "dataset_reference",
+      "use": "Ingredient and skincare guidance only; not diagnosis or emergency triage",
+      "count": 8000
+    },
+    {
+      "path": "derived/problem_skin_makeup_rag.jsonl",
+      "trust_level": "dataset_reference",
+      "use": "Problem-skin makeup and ingredient caution reference only",
+      "count": 8031
+    },
+    {
+      "path": "derived/source_medical_qa_rag.jsonl",
+      "trust_level": "medical_qa_reference",
+      "use": "Specialist QA reference only; must not override emergency rules or official sources",
+      "count": 3630
+    }
+  ],
+  "evaluation_holdout": [
+    {
+      "path": "derived/skin_care_ingredient_eval.jsonl",
+      "count": 1000
+    },
+    {
+      "path": "derived/problem_skin_makeup_eval.jsonl",
+      "count": 1000
+    },
+    {
+      "path": "derived/source_medical_qa_eval.jsonl",
+      "count": 436
+    }
+  ],
+  "excluded_from_embedding": [
+    "sources/official_by_use/safety_only/",
+    "sources/official_by_use/out_of_scope/",
+    "sources/official_by_use/api_reference/",
+    "sources/trusted_by_use/safety_only/",
+    "sources/trusted_by_use/out_of_scope/",
+    "sources/trusted_by_use/api_reference/"
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "slug": "kdca_openapi_data_go",
+    "title": "공공데이터포털 질병관리청 국가건강정보포털 OpenAPI",
+    "institution": "공공데이터포털/질병관리청",
+    "url": "https://www.data.go.kr/data/15087442/openapi.do",
+    "bucket": "api_reference",
+    "reason": "질병관리청 OpenAPI 전환 검토용 메타자료.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_official/html/kdca_openapi_data_go.html",
+    "raw_text_path": "sources/raw_official/text/kdca_openapi_data_go.txt",
+    "partitioned_text_path": "sources/official_by_use/api_reference/kdca_openapi_data_go.txt",
+    "text_sha256": "86ca2574e1a882dc8502ccc62f02b87ec9119bc84742f466e2af93b7d7083dde"
+  },
+  {
+    "slug": "open_law_api_guide",
+    "title": "국가법령정보 공동활용 Open API 가이드",
+    "institution": "법제처",
+    "url": "https://open.law.go.kr/LSO/openApi/guideList.do",
+    "bucket": "api_reference",
+    "reason": "법령 Open API 전환 검토용 메타자료.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_official/html/open_law_api_guide.html",
+    "raw_text_path": "sources/raw_official/text/open_law_api_guide.txt",
+    "partitioned_text_path": "sources/official_by_use/api_reference/open_law_api_guide.txt",
+    "text_sha256": "bcfef9ebb10d24ed6e351f382ac91fa52269bcd47d44cc4eba8b98b80b859158"
+  }
+]

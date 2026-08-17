@@ -1,0 +1,507 @@
+{
+  "version": "2026-08-15-emergency-regression-v2",
+  "rulebook_version": "2026-08-15-mvp-rules-v3.1",
+  "purpose": "emergency_rules.json 의 hard-stop 판정에 대한 positive/negative 회귀 고정. 룰을 넓히거나 좁힐 때 이 파일의 케이스가 함께 갱신되어야 합니다.",
+  "conventions": {
+    "expect": "hard_stop 이면 최소 한 개 룰이 매칭되어야 하고, no_match 이면 어떤 룰도 매칭되면 안 됩니다.",
+    "expected_rule_ids": "부분집합으로 검사합니다. 나열한 룰은 반드시 포함되어야 하고, 추가 룰이 함께 매칭되는 것은 허용합니다.",
+    "forbidden_rule_ids": "해당 룰이 매칭되면 실패합니다. 특정 룰의 오탐을 고정할 때 사용합니다."
+  },
+  "categories": {
+    "handoff_baseline": "CLAUDE_HANDOFF.md 단계 2에서 최소 검증으로 지정한 케이스",
+    "integration_scenario": "test_cases/integration_scenarios.json 의 응급 시나리오와 정렬",
+    "rule_coverage": "9개 룰 각각이 최소 한 건의 positive 로 커버되는지 확인",
+    "word_boundary_false_positive": "공백 제거로 어절 경계가 사라져 발생하는 접합 오탐",
+    "negation_false_positive": "환자가 증상 부재를 보고하는 안심 문장",
+    "negation_true_positive": "부정어가 포함되지만 증상이 지속되는 실제 응급. 부정 억제가 과도하게 넓어지면 여기서 미탐으로 잡힙니다",
+    "declared_intent_completion": "룰이 이미 선언한 의도 안에서 어미나 표기만 다른 변형. 커버리지 확장이 아니라 선언한 것을 지키는 케이스입니다. 종료 기준은 ADR-0021 참조",
+    "benign_aftercare": "정상 사후관리 문의. RAG 검색으로 넘어가야 합니다"
+  },
+  "cases": [
+    {
+      "id": "HB-01",
+      "category": "handoff_baseline",
+      "user_input": "열심히 관리하고 있어요",
+      "expect": "no_match",
+      "rationale": "넓은 단어 '열' 이 단독 트리거가 되면 안 됩니다."
+    },
+    {
+      "id": "HB-02",
+      "category": "handoff_baseline",
+      "user_input": "출혈이 있었지만 지금은 멈췄어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-03"],
+      "rationale": "단독 '출혈' 로 hard-stop 하면 안 됩니다. 단독 '멈' 을 대안에 넣지 않아야 통과합니다."
+    },
+    {
+      "id": "HB-03",
+      "category": "handoff_baseline",
+      "user_input": "38.5도이고 오한이 나요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "HB-04",
+      "category": "handoff_baseline",
+      "user_input": "거즈로 압박해도 피가 계속 나요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-03"]
+    },
+    {
+      "id": "HB-05",
+      "category": "handoff_baseline",
+      "user_input": "필러 후 피부가 하얗게 변하고 시야가 흐려요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-07"]
+    },
+    {
+      "id": "HB-06",
+      "category": "handoff_baseline",
+      "user_input": "레이저 후 물집과 참기 힘든 통증이 있어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-09"]
+    },
+
+    {
+      "id": "IS-01",
+      "category": "integration_scenario",
+      "user_input": "수술 부위에서 노란 고름이 나오고 열이 펄펄 나요.",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-01", "RISK-02"],
+      "rationale": "TC-RISK-01 과 동일. RISK-02 는 '열이 펄펄' 패턴으로 매칭되어야 하며, '나오고'+'열이' 접합으로 생기는 '고열이' 로 매칭되면 안 됩니다."
+    },
+    {
+      "id": "IS-02",
+      "category": "integration_scenario",
+      "user_input": "코에서 피가 계속 나고 지혈이 안 돼요.",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-03"]
+    },
+    {
+      "id": "IS-03",
+      "category": "integration_scenario",
+      "user_input": "필러 맞고 눈 앞이 안 보여요. 입술 주변 피부가 파랗게 변한 것 같아요.",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-07"]
+    },
+    {
+      "id": "IS-04",
+      "category": "integration_scenario",
+      "user_input": "보톡스 맞고 숨쉬기 힘들고 삼키기 힘들어요. 말이 어눌해진 느낌도 있어요.",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-08"]
+    },
+    {
+      "id": "IS-05",
+      "category": "integration_scenario",
+      "user_input": "레이저 후 물집이 너무 많이 생기고 참기 힘든 통증이 있어요.",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-09"]
+    },
+
+    {
+      "id": "RC-01",
+      "category": "rule_coverage",
+      "user_input": "수술 부위에서 고름이 나와요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-01"]
+    },
+    {
+      "id": "RC-02",
+      "category": "rule_coverage",
+      "user_input": "고열이 계속 나요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "RC-03",
+      "category": "rule_coverage",
+      "user_input": "피가 안 멈춰요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-03"]
+    },
+    {
+      "id": "RC-04",
+      "category": "rule_coverage",
+      "user_input": "상처가 벌어졌어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-04"]
+    },
+    {
+      "id": "RC-05",
+      "category": "rule_coverage",
+      "user_input": "복시가 생겼어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-05"],
+      "rationale": "'복시' 는 패턴으로 이동했습니다. 앞에 한글 음절이 없을 때만 매칭됩니다."
+    },
+    {
+      "id": "RC-06",
+      "category": "rule_coverage",
+      "user_input": "목이 붓고 두드러기가 올라왔어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-06"],
+      "rationale": "'목이 붓' 은 패턴으로 이동했습니다. 앞에 한글 음절이 없을 때만 매칭됩니다."
+    },
+    {
+      "id": "RC-07",
+      "category": "rule_coverage",
+      "user_input": "필러 맞고 시야가 갑자기 흐려졌어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-07"]
+    },
+    {
+      "id": "RC-08",
+      "category": "rule_coverage",
+      "user_input": "보톡스 맞고 숨쉬기 어렵고 삼킴 곤란이 있어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-08"]
+    },
+    {
+      "id": "RC-09",
+      "category": "rule_coverage",
+      "user_input": "레이저 후 물집이 심하게 생겼어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-09"]
+    },
+
+    {
+      "id": "WB-01",
+      "category": "word_boundary_false_positive",
+      "user_input": "붓기가 빠지고 열이 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-02"],
+      "rationale": "'빠지고'+'열이' 가 붙어 '고열이' 를 만듭니다. 패턴은 spaced 형태에서 평가되어야 합니다."
+    },
+    {
+      "id": "WB-02",
+      "category": "word_boundary_false_positive",
+      "user_input": "약을 먹고 열이 내렸어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-02"],
+      "rationale": "열이 내려간 안심 보고가 감염/발열 hard-stop 되면 안 됩니다."
+    },
+    {
+      "id": "WB-03",
+      "category": "word_boundary_false_positive",
+      "user_input": "연고 바르고 열이 안 나요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "WB-04",
+      "category": "word_boundary_false_positive",
+      "user_input": "소독하고 열이 떨어졌어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "WB-05",
+      "category": "word_boundary_false_positive",
+      "user_input": "회복시기가 언제쯤인지 궁금해요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-05"],
+      "rationale": "'회복시기' 안의 '복시' 가 시야 이상으로 오탐되면 안 됩니다."
+    },
+    {
+      "id": "WB-06",
+      "category": "word_boundary_false_positive",
+      "user_input": "회복 시간이 얼마나 걸리나요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-05"]
+    },
+    {
+      "id": "WB-07",
+      "category": "word_boundary_false_positive",
+      "user_input": "발목이 붓어서 걷기 불편해요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-06"],
+      "rationale": "'발목이 붓' 안의 '목이 붓' 이 전신 알레르기로 오탐되면 안 됩니다."
+    },
+    {
+      "id": "WB-08",
+      "category": "word_boundary_false_positive",
+      "user_input": "손목이 붓는 느낌이에요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-06"]
+    },
+    {
+      "id": "WB-09",
+      "category": "word_boundary_false_positive",
+      "user_input": "피부가 계속 건조해요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-03"],
+      "rationale": "'피부가 계속' 이 '피가 계속' 출혈 패턴으로 오탐되면 안 됩니다."
+    },
+    {
+      "id": "WB-10",
+      "category": "word_boundary_false_positive",
+      "user_input": "화상 상담 예약하고 싶어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-09"],
+      "rationale": "'화상 상담' 이 레이저 화상 트리거 '화상 같' 과 충돌하지 않아야 합니다."
+    },
+
+    {
+      "id": "NG-01",
+      "category": "negation_false_positive",
+      "user_input": "고름은 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-01"]
+    },
+    {
+      "id": "NG-02",
+      "category": "negation_false_positive",
+      "user_input": "고열은 없습니다",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "NG-03",
+      "category": "negation_false_positive",
+      "user_input": "극심한 통증은 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-04"]
+    },
+    {
+      "id": "NG-04",
+      "category": "negation_false_positive",
+      "user_input": "괴사 같은 건 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-04"]
+    },
+    {
+      "id": "NG-05",
+      "category": "negation_false_positive",
+      "user_input": "상처가 벌어지지 않았어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-04"]
+    },
+    {
+      "id": "NG-06",
+      "category": "negation_false_positive",
+      "user_input": "숨쉬기 힘들지는 않아요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-05"]
+    },
+    {
+      "id": "NG-07",
+      "category": "negation_false_positive",
+      "user_input": "시야가 흐리지 않아요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-05"]
+    },
+    {
+      "id": "NG-08",
+      "category": "negation_false_positive",
+      "user_input": "눈 통증은 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-05"]
+    },
+    {
+      "id": "NG-09",
+      "category": "negation_false_positive",
+      "user_input": "두드러기는 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-06"]
+    },
+    {
+      "id": "NG-10",
+      "category": "negation_false_positive",
+      "user_input": "말이 어눌하지는 않아요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-07", "RISK-08"]
+    },
+    {
+      "id": "NG-11",
+      "category": "negation_false_positive",
+      "user_input": "삼키기 힘들지 않아요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-08"]
+    },
+    {
+      "id": "NG-12",
+      "category": "negation_false_positive",
+      "user_input": "진물이 나지 않아요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-09"]
+    },
+    {
+      "id": "NG-13",
+      "category": "negation_false_positive",
+      "user_input": "심하게 붓지는 않았어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-09"]
+    },
+
+    {
+      "id": "NT-01",
+      "category": "negation_true_positive",
+      "user_input": "열이 안 떨어져요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"],
+      "rationale": "'안 떨어져요' 는 발열 지속을 뜻하는 응급입니다. 부정어 '안' 을 억제 토큰으로 쓰면 이 케이스가 미탐됩니다."
+    },
+    {
+      "id": "NT-02",
+      "category": "negation_true_positive",
+      "user_input": "지혈이 안 돼요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-03"]
+    },
+    {
+      "id": "NT-03",
+      "category": "negation_true_positive",
+      "user_input": "숨이 안 쉬어져요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-05"]
+    },
+    {
+      "id": "NT-04",
+      "category": "negation_true_positive",
+      "user_input": "눈이 안 보여요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-05"]
+    },
+    {
+      "id": "NT-05",
+      "category": "negation_true_positive",
+      "user_input": "고름은 없지만 다른 곳에서 고름이 나와요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-01"],
+      "rationale": "첫 출현이 부정되어도 이후의 긍정 출현을 찾아야 합니다. 첫 매칭만 검사하면 미탐됩니다."
+    },
+    {
+      "id": "NT-06",
+      "category": "negation_true_positive",
+      "user_input": "고름이 나오고 통증은 없어요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-01"],
+      "rationale": "문장 뒤쪽의 '없' 은 통증에 붙은 것입니다. 억제 규칙이 앵커링되지 않으면 실제 감염 신호가 사라집니다."
+    },
+    {
+      "id": "NT-07",
+      "category": "negation_true_positive",
+      "user_input": "시야가 흐리고 안 보여요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-05"],
+      "rationale": "트리거 직후에 '안' 이 오는 실제 응급입니다. 억제 규칙에 '안' 이 들어가면 이 케이스가 미탐됩니다."
+    },
+    {
+      "id": "NT-08",
+      "category": "negation_true_positive",
+      "user_input": "붓기가 안 빠지고 열이 계속 나요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"],
+      "rationale": "'안 빠지고' 는 증상 지속입니다. 문장에 '안' 이 있다는 이유로 억제되면 안 됩니다."
+    },
+
+    {
+      "id": "DI-01",
+      "category": "declared_intent_completion",
+      "user_input": "열이 떨어지지 않아요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"],
+      "rationale": "RISK-02 는 '안 떨어' 로 발열 지속을 이미 선언했습니다. 같은 의미의 '떨어지지 않' 어미가 미탐되던 것을 수정했습니다."
+    },
+    {
+      "id": "DI-02",
+      "category": "declared_intent_completion",
+      "user_input": "열이 내려가지 않습니다",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "DI-03",
+      "category": "declared_intent_completion",
+      "user_input": "열이 안 내려가요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-02"]
+    },
+    {
+      "id": "DI-04",
+      "category": "declared_intent_completion",
+      "user_input": "상처에서 노란색 분비물이 배출되고 있습니다",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-01"],
+      "rationale": "RISK-01 에 '노란 분비물' 이 있었으나 '노란색 분비물' 은 미탐이었습니다. 색상과 분비물 조합을 패턴으로 처리합니다."
+    },
+    {
+      "id": "DI-05",
+      "category": "declared_intent_completion",
+      "user_input": "노란색 진물이 나와요",
+      "expect": "hard_stop",
+      "expected_rule_ids": ["RISK-01"]
+    },
+    {
+      "id": "DI-06",
+      "category": "declared_intent_completion",
+      "user_input": "열이 떨어졌어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-02"],
+      "rationale": "지속 어미를 추가할 때 '떨어졌' 완료형까지 넓어지지 않도록 고정합니다."
+    },
+    {
+      "id": "DI-07",
+      "category": "declared_intent_completion",
+      "user_input": "노란색 크림을 발라도 되나요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-01"],
+      "rationale": "색상 언급 자체가 트리거가 되면 안 됩니다. 분비물 명사와 결합할 때만 매칭합니다."
+    },
+    {
+      "id": "DI-08",
+      "category": "declared_intent_completion",
+      "user_input": "노란색 분비물은 없어요",
+      "expect": "no_match",
+      "forbidden_rule_ids": ["RISK-01"],
+      "rationale": "새로 추가한 패턴도 negation_guards 의 적용을 받아야 합니다."
+    },
+
+    {
+      "id": "BA-01",
+      "category": "benign_aftercare",
+      "user_input": "얼굴이 너무 붉고 화끈거려요. 세안 언제부터 가능한가요?",
+      "expect": "no_match",
+      "rationale": "TC-DERM-01. RAG 검색으로 넘어가야 합니다."
+    },
+    {
+      "id": "BA-02",
+      "category": "benign_aftercare",
+      "user_input": "피부가 너무 건조하고 당겨요. 수분크림 발라도 되나요?",
+      "expect": "no_match",
+      "rationale": "TC-DERM-02."
+    },
+    {
+      "id": "BA-03",
+      "category": "benign_aftercare",
+      "user_input": "부기 때문인지 코끝이 약간 휜 것 같아요. 재수술해야 하는 거 아니죠?",
+      "expect": "no_match",
+      "rationale": "TC-RHINO-01. 불안 감지와 화상상담 유도는 응급 룰이 아니라 답변 단계에서 처리합니다."
+    },
+    {
+      "id": "BA-04",
+      "category": "benign_aftercare",
+      "user_input": "각질이 일어나는데 뜯어도 되나요?",
+      "expect": "no_match"
+    },
+    {
+      "id": "BA-05",
+      "category": "benign_aftercare",
+      "user_input": "실밥 제거는 언제 하나요?",
+      "expect": "no_match"
+    },
+    {
+      "id": "BA-06",
+      "category": "benign_aftercare",
+      "user_input": "아침에 코가 더 부어 보이는데 정상인가요?",
+      "expect": "no_match"
+    },
+    {
+      "id": "BA-07",
+      "category": "benign_aftercare",
+      "user_input": "선크림은 언제부터 바를 수 있나요?",
+      "expect": "no_match"
+    }
+  ]
+}

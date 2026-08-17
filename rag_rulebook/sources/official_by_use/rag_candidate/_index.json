@@ -1,0 +1,28 @@
+[
+  {
+    "slug": "kdca_wound_scar_care",
+    "title": "질병관리청 국가건강정보포털 상처관리와 흉터예방",
+    "institution": "질병관리청",
+    "url": "https://health.kdca.go.kr/healthinfo/biz/health/gnrlzHealthInfo/gnrlzHealthInfo/gnrlzHealthInfoView.do?cntnts_sn=5696",
+    "bucket": "rag_candidate",
+    "reason": "피부 손상, 상처 세척, 드레싱, 흉터 예방, 병원 방문 기준이 성형/피부미용 사후관리와 직접 연결됨.",
+    "embedding_policy": "allow",
+    "raw_html_path": "sources/raw_official/html/kdca_wound_scar_care.html",
+    "raw_text_path": "sources/raw_official/text/kdca_wound_scar_care.txt",
+    "partitioned_text_path": "sources/official_by_use/rag_candidate/kdca_wound_scar_care.txt",
+    "text_sha256": "845b436c6dbbffdae7c348c9c5962fc603eb667ccf3a133538d7d979fd86187c"
+  },
+  {
+    "slug": "kdca_urticaria",
+    "title": "질병관리청 국가건강정보포털 두드러기",
+    "institution": "질병관리청",
+    "url": "https://health.kdca.go.kr/healthinfo/biz/health/gnrlzHealthInfo/gnrlzHealthInfo/gnrlzHealthInfoView.do?cntnts_sn=6581",
+    "bucket": "rag_candidate",
+    "reason": "피부 알레르기/혈관부종/호흡곤란 경고가 시술 후 이상반응 안내와 연결됨.",
+    "embedding_policy": "allow_with_safety_filters",
+    "raw_html_path": "sources/raw_official/html/kdca_urticaria.html",
+    "raw_text_path": "sources/raw_official/text/kdca_urticaria.txt",
+    "partitioned_text_path": "sources/official_by_use/rag_candidate/kdca_urticaria.txt",
+    "text_sha256": "66ca7b97c53a2278d0699398502761565542e72c196aacbbb0c7985f4883ce76"
+  }
+]
