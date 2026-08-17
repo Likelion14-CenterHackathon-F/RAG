@@ -1,4 +1,4 @@
-# 🏥 센터톤 사후관리 RAG — FastAPI AI Answer Server
+# 🏥 사후관리 RAG — FastAPI AI Answer Server
 
 > **시술 후 증상 문의를 검증된 근거에 묶인 답변으로 바꿉니다.**
 >
