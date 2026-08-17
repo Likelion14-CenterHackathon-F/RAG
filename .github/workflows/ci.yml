@@ -74,6 +74,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # 러너의 기본 buildx 드라이버는 `docker` 이고 캐시 export 를 지원하지 않는다
+      # ("Cache export is not supported for the docker driver"). 아래 단계가
+      # docker-container 드라이버를 붙여 type=gha 캐시를 쓸 수 있게 한다.
+      # 캐시가 중요한 이유는 CPU 전용 torch 설치 레이어가 크고 느리기 때문이다.
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
       # 이미지에는 KURE 가중치가 들어가지 않는다. 2.1GB 라서 이미지가 그만큼 커지고
       # Docker Hub 왕복이 느려지기 때문에, 서버의 HuggingFace 캐시 볼륨에 한 번만
       # 내려받아 재사용한다(cd.yml 참고).
