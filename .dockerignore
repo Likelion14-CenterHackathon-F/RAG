@@ -1,0 +1,23 @@
+# The corpus is already embedded in pgvector. Shipping it would add 77MB to the
+# image for documents the service never reads from disk.
+rag_rulebook/derived/
+rag_rulebook/sources/
+rag_rulebook/rag/
+
+# Curation and ingestion scripts are not part of the runtime.
+rag_rulebook/tools/build_rag_datasets.py
+rag_rulebook/tools/extract_*.py
+rag_rulebook/tools/partition_*.py
+rag_rulebook/tools/validate_*.py
+
+docs/
+tests/
+verification/
+.git/
+.github/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store

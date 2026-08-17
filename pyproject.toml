@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "centerton-rag"
+version = "0.1.0"
+description = "Centerton aftercare RAG service and its rulebook"
+requires-python = ">=3.11"
+
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.6",
+    "psycopg[binary]>=3.1",
+    "openai>=1.30",
+    "sentence-transformers>=2.7",
+]
+
+[project.optional-dependencies]
+# The contract tests import only centerton_rag and rag_rulebook, both of which
+# stay on the standard library, so they run without the service dependencies.
+test = ["pytest>=8.0"]
+
+[tool.setuptools]
+# rag_rulebook ships with the service because the service cannot start without
+# rules/emergency_rules.json. The 77MB corpus under derived/ and sources/ is not
+# packaged: those documents are already embedded in pgvector.
+packages = ["centerton_rag", "rag_rulebook", "rag_rulebook.tools"]
+
+[tool.setuptools.package-data]
+rag_rulebook = ["rules/*.json", "test_cases/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,77 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.DS_Store
+# scripts/ 실행 산출물 (적재 계획, 평가 리포트)
+build/
+
+# ── 공개 저장소에 올리지 않는 내부 문서 ──────────────────────────────
+# 이 항목들은 이미 커밋된 이력이 있다. .gitignore 는 추적 중인 파일에
+# 적용되지 않으므로 `git rm --cached` 로 추적을 끊어야 실제로 제외된다.
+# 과거 커밋에는 그대로 남으므로, 이력까지 지우려면 새 저장소로 옮겨야 한다.
+
+# 의사결정 기록. 내부 논의 과정과 대안 검토가 담겨 있다.
+docs/adr/
+
+# 인수인계 문서. 별도 저장소의 로컬 경로를 참조한다.
+CLAUDE_HANDOFF.md
+
+# 검증 결과물. DB 스키마 전문, 내부 마감 일정, 로컬 절대경로가 들어 있다.
+# probe 스크립트와 SQL 은 남긴다. 코드에 민감 정보가 없고, config.py 주석과
+# scripts/README.md 가 재측정 방법으로 이 경로를 가리킨다.
+verification/*.md
+verification/*.json
+
+# ── 확장 참고 색인과 평가 홀드아웃 (19,661 + 2,436건, 약 56MB) ────────
+# 세 가지 이유로 저장소에 담지 않는다.
+#
+# 1. AI-Hub 개방데이터 가공물이다. 원문 질문과 답변이 그대로 들어 있어
+#    재배포로 볼 여지가 있고, 저장소에 라이선스 표기가 없다.
+# 2. source_medical_qa_rag 는 "가장 가능성 높은 진단은?" 형태의 전문의 QA 다.
+#    이 제품은 진단을 확정하지 않으며, 이 데이터가 환자 답변 색인에 섞이면
+#    그 경계가 무너진다. 저장소에 두지 않는 것이 그 실수를 막는 가장 단순한 방법이다.
+# 3. 런타임 코드가 읽지 않고 배포 DB 에도 적재되어 있지 않다. 기본 색인 90건은
+#    rag/mvp_care_knowledge.jsonl 17 + derived/official 15 + derived/trusted 58 로
+#    전부 저장소에 남아 있어 색인 재현에 필요한 것은 갖춰져 있다.
+#
+# 로컬 파일은 그대로 두므로 보조 색인 실험은 계속 가능하다.
+# validate_dataset_baseline.py 는 이 파일들이 없으면 SKIP 으로 처리한다.
+rag_rulebook/derived/skin_care_ingredient_rag.jsonl
+rag_rulebook/derived/skin_care_ingredient_eval.jsonl
+rag_rulebook/derived/problem_skin_makeup_rag.jsonl
+rag_rulebook/derived/problem_skin_makeup_eval.jsonl
+rag_rulebook/derived/source_medical_qa_rag.jsonl
+rag_rulebook/derived/source_medical_qa_eval.jsonl
+
+# 위 데이터셋을 AI-Hub 원본 zip 에서 만든 기록. 빌드 머신의 Downloads 경로가
+# 47줄 들어 있고, 설명 대상인 산출물이 저장소에 없으므로 함께 제외한다.
+rag_rulebook/derived/dataset_manifest.json
+
+# ── 원본 스냅샷 (HTML / PDF / 추출 텍스트, 약 12.5MB) ─────────────────
+# 식약처 안내서 PDF 전문, 질병관리청·중앙응급의료센터·MFDS·FDA·AAD·ASPS 페이지
+# 전체 사본이다. 제3자 저작물을 그대로 재배포하는 형태라 담지 않는다.
+#
+# 코드에는 영향이 없다. 런타임과 검증은 이 파일을 읽지 않고, 읽는 것은 이미 실행이
+# 끝난 전처리 스크립트(extract_*.py, partition_*.py) 뿐이다. .dockerignore 도
+# sources/ 전체를 제외한다.
+#
+# 출처 추적은 유지된다. 각 청크의 metadata.url 과 source_refs 에 원본 URL 이 남아
+# 있고, 검증은 파일 존재가 아니라 필드 존재를 확인한다.
+#
+# sources/*_by_use/**/*.txt 는 남긴다. build_rag_datasets.py 가 청크를 재생성할 때
+# 쓰는 입력이고, _index.json 은 제외 대상 문서가 색인에 새지 않았는지 검사하는 근거다.
+rag_rulebook/sources/raw_official/
+rag_rulebook/sources/raw_trusted/
+
+# 로컬 환경에 따라 달라지는 비밀 파일들
+*.env
+!.env.example
+application-secret.properties
+*.pem
+*.key
+id_rsa*
+secrets.json
+credentials.json
