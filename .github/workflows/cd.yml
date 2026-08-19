@@ -12,7 +12,7 @@ permissions:
 env:
   IMAGE: ${{ secrets.DOCKER_USERNAME }}/centerton-rag
   CONTAINER_NAME: centerton-rag
-  DOCKER_NETWORK: centerton-net
+  DOCKER_NETWORK: ubuntu_centerton-net
 
 jobs:
   deploy:
