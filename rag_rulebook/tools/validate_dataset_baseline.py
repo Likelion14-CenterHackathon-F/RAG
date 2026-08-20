@@ -43,7 +43,9 @@ MANIFEST_KEY_TO_PATH = {
 EXCLUDED_BUCKETS = ("safety_only", "out_of_scope", "api_reference")
 SOURCE_FAMILIES = ("official_by_use", "trusted_by_use")
 
-EXPECTED_DEFAULT_INDEX_TOTAL = 90
+# ASPS 추출에서 페이지 내비게이션이 본문으로 들어간 청크 3건을 제거한 뒤의 값이다.
+# end_markers 가 실제 텍스트와 맞지 않아 크롭이 블로그 목록까지 포함하고 있었다.
+EXPECTED_DEFAULT_INDEX_TOTAL = 106
 
 # 확장 참고 색인과 평가 홀드아웃은 저장소에 담지 않는다(.gitignore 참고).
 # AI-Hub 가공물이라 재배포 여지가 있고, 전문의 QA 는 진단 확정형이어서 환자 답변

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-15-expanded-corpus",
+  "version": "2026-08-20-translated-corpus",
   "principle": "Index broad data only with explicit trust, scope, and routing metadata. Emergency and out-of-scope official documents remain excluded from patient-answer retrieval.",
   "default_patient_answer_index": [
     {
@@ -17,8 +17,8 @@
     {
       "path": "derived/trusted_rag_candidate_chunks.jsonl",
       "trust_level": "official_or_professional",
-      "use": "MFDS/FDA/AAD/ASPS skin-aesthetic aftercare and recovery chunks",
-      "count": 58
+      "use": "MFDS/FDA/AAD/ASPS/Aesthetic Society skin-aesthetic aftercare and recovery chunks, translated to Korean",
+      "count": 74
     }
   ],
   "expanded_reference_index": [

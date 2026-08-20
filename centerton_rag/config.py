@@ -11,7 +11,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RAG_ROOT = REPO_ROOT / "rag_rulebook"
-DEFAULT_INDEX_VERSION = "2026-08-15-expanded-corpus"
+DEFAULT_INDEX_VERSION = "2026-08-20-translated-corpus"
 DEFAULT_KURE_MODEL = "nlpai-lab/KURE-v1"
 
 # Measured on the real evidence payload for the two demo questions, 3 runs each:
