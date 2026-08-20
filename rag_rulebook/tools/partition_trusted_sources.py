@@ -82,6 +82,42 @@ PARTITION: dict[str, dict[str, str]] = {
         "reason": "보툴리눔 톡신 확산 의심 증상인 호흡 문제, 삼킴 곤란, 근력 약화, 말 어눌함은 즉시 진료 룰 근거로 사용.",
         "embedding_policy": "deny",
     },
+    "tas_eyelid_recovery": {
+        "bucket": "rag_candidate",
+        "reason": "눈성형 후 냉찜질, 인공눈물, 활동 제한, 실밥 제거 시점, 시야 이상 시 즉시 진료 기준이 시간대별로 정리된 환자용 사후관리 문서임.",
+        "embedding_policy": "allow_with_safety_filters",
+    },
+    "tas_facelift_recovery": {
+        "bucket": "rag_candidate",
+        "reason": "안면 리프팅 후 부기·멍 경과, 배액관, 세안, 활동 재개 기준이 정리된 환자용 사후관리 문서임.",
+        "embedding_policy": "allow_with_safety_filters",
+    },
+    "tas_brow_lift_recovery": {
+        "bucket": "rag_candidate",
+        "reason": "이마·눈썹 리프팅 후 부기와 활동 제한, 운동 재개 기준이 직접 연결됨.",
+        "embedding_policy": "allow",
+    },
+    "tas_neck_lift_recovery": {
+        "bucket": "rag_candidate",
+        "reason": "목 리프팅 후 회복 기간, 절개부 관리, 메이크업 재개 시점이 직접 연결됨.",
+        "embedding_policy": "allow",
+    },
+    "asps_thread_lift": {
+        "bucket": "rag_candidate",
+        "reason": "실리프팅 정의와 적합 대상, 기대 범위가 실리프팅 문의의 맥락 보강에 필요함.",
+        "embedding_policy": "allow",
+    },
+    "tas_eyelid_safety": {
+        "bucket": "safety_only",
+        "reason": "눈성형 후 시야 이상 등 중대 위험 신호 중심이므로 hard-stop 룰 근거로 사용.",
+        "embedding_policy": "deny",
+    },
+    "tas_facelift_safety": {
+        "bucket": "safety_only",
+        "reason": "안면 리프팅 후 피부 괴사, 신경 손상 등 중대 위험 신호 중심이므로 hard-stop 룰 근거로 사용.",
+        "embedding_policy": "deny",
+    },
+
 }
 
 

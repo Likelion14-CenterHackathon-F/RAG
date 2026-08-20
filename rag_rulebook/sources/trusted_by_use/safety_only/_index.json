@@ -15,7 +15,7 @@
     "raw_pdf_path": "",
     "raw_text_path": "sources/raw_trusted/text/asps_dermal_filler_safety.txt",
     "partitioned_text_path": "sources/trusted_by_use/safety_only/asps_dermal_filler_safety.txt",
-    "text_sha256": "614720d3af174ce39bdb5f83961f70dfbff915d40ecdaaef5a658b772beac116"
+    "text_sha256": "b274fe11a39eca95170a80a1b824aee72b8996da1f99d642414f33698f3a0d7e"
   },
   {
     "slug": "fda_dermal_fillers_soft_tissue",
@@ -51,6 +51,42 @@
     "raw_pdf_path": "",
     "raw_text_path": "sources/raw_trusted/text/asps_botulinum_toxin_safety.txt",
     "partitioned_text_path": "sources/trusted_by_use/safety_only/asps_botulinum_toxin_safety.txt",
-    "text_sha256": "0684c7aa5ad22b3978bb422caf4c6bd0fb36a05a6fbefb2bacf443fca5527737"
+    "text_sha256": "365c506882e926d38bc15b7cba075713e6e387f18beeb9560343682b3de55708"
+  },
+  {
+    "slug": "tas_eyelid_safety",
+    "title": "The Aesthetic Society eyelid surgery risks and safety",
+    "institution": "The Aesthetic Society",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.theaestheticsociety.org/procedures/head-face/eyelid-surgery/safety-considerations",
+    "department": "oculoplasty",
+    "procedure": "blepharoplasty",
+    "recommended_use": "눈성형 중대 위험 신호. hard-stop 룰 근거 후보",
+    "bucket": "safety_only",
+    "reason": "눈성형 후 시야 이상 등 중대 위험 신호 중심이므로 hard-stop 룰 근거로 사용.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_trusted/html/tas_eyelid_safety.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/tas_eyelid_safety.txt",
+    "partitioned_text_path": "sources/trusted_by_use/safety_only/tas_eyelid_safety.txt",
+    "text_sha256": "1135851418dacd932f452ec51d6fa38f0eb65e28b3fffbaba8a4212300131e3e"
+  },
+  {
+    "slug": "tas_facelift_safety",
+    "title": "The Aesthetic Society facelift risks and safety",
+    "institution": "The Aesthetic Society",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.theaestheticsociety.org/procedures/head-face/facelift/safety-considerations",
+    "department": "plastic_surgery",
+    "procedure": "facelift",
+    "recommended_use": "안면 리프팅 중대 위험 신호. hard-stop 룰 근거 후보",
+    "bucket": "safety_only",
+    "reason": "안면 리프팅 후 피부 괴사, 신경 손상 등 중대 위험 신호 중심이므로 hard-stop 룰 근거로 사용.",
+    "embedding_policy": "deny",
+    "raw_html_path": "sources/raw_trusted/html/tas_facelift_safety.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/tas_facelift_safety.txt",
+    "partitioned_text_path": "sources/trusted_by_use/safety_only/tas_facelift_safety.txt",
+    "text_sha256": "fd6e985201910950d1c86bb8497f74edccf4b116a136896807f392580044e9ed"
   }
 ]

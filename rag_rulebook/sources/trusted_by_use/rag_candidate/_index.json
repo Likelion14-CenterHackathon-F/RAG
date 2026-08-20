@@ -123,7 +123,7 @@
     "raw_pdf_path": "",
     "raw_text_path": "sources/raw_trusted/text/asps_dermal_filler_recovery.txt",
     "partitioned_text_path": "sources/trusted_by_use/rag_candidate/asps_dermal_filler_recovery.txt",
-    "text_sha256": "d00f7c727625aa67794db63aa613a72dfdb6404e1c7921c1bf58e7f69a9e5e34"
+    "text_sha256": "9f1078441151df78927dad7a84277762fc94ddf5819763465330fcd6f966eafd"
   },
   {
     "slug": "asps_rhinoplasty_recovery",
@@ -141,7 +141,7 @@
     "raw_pdf_path": "",
     "raw_text_path": "sources/raw_trusted/text/asps_rhinoplasty_recovery.txt",
     "partitioned_text_path": "sources/trusted_by_use/rag_candidate/asps_rhinoplasty_recovery.txt",
-    "text_sha256": "ffe6ef6f17755b775f2693dea336f67d087c544469e08fec8a3cbae9ddecf0d2"
+    "text_sha256": "83d70b84ed42e3037d6bb4b21f0cf063dd978bdc5c14d5e6533496f9ca46aa16"
   },
   {
     "slug": "fda_dermal_filler_dos_donts",
@@ -177,6 +177,96 @@
     "raw_pdf_path": "",
     "raw_text_path": "sources/raw_trusted/text/asps_botulinum_toxin_recovery.txt",
     "partitioned_text_path": "sources/trusted_by_use/rag_candidate/asps_botulinum_toxin_recovery.txt",
-    "text_sha256": "bbe7ac925c7c411d16dac1ed5f1e41fb9d95b982764f08699b1e2018da83c34b"
+    "text_sha256": "36bbc78edf17758db1269c2428b7c1ff86672ef2c22eb1560bdd77a59ba8463f"
+  },
+  {
+    "slug": "tas_eyelid_recovery",
+    "title": "The Aesthetic Society eyelid surgery aftercare and recovery",
+    "institution": "The Aesthetic Society",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.theaestheticsociety.org/procedures/head-face/eyelid-surgery/aftercare-recovery",
+    "department": "oculoplasty",
+    "procedure": "blepharoplasty",
+    "recommended_use": "눈성형(쌍꺼풀·안검) 후 냉찜질, 인공눈물, 활동 제한, 실밥 제거, 시야 이상 시 즉시 진료",
+    "bucket": "rag_candidate",
+    "reason": "눈성형 후 냉찜질, 인공눈물, 활동 제한, 실밥 제거 시점, 시야 이상 시 즉시 진료 기준이 시간대별로 정리된 환자용 사후관리 문서임.",
+    "embedding_policy": "allow_with_safety_filters",
+    "raw_html_path": "sources/raw_trusted/html/tas_eyelid_recovery.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/tas_eyelid_recovery.txt",
+    "partitioned_text_path": "sources/trusted_by_use/rag_candidate/tas_eyelid_recovery.txt",
+    "text_sha256": "256d1b3019b4c514584e04a1d6623d38526e0618faf1b2f9d52685314f790ed8"
+  },
+  {
+    "slug": "tas_facelift_recovery",
+    "title": "The Aesthetic Society facelift aftercare and recovery",
+    "institution": "The Aesthetic Society",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.theaestheticsociety.org/procedures/head-face/facelift/aftercare-recovery",
+    "department": "plastic_surgery",
+    "procedure": "facelift",
+    "recommended_use": "안면 리프팅 후 부기·멍 경과, 배액관, 세안, 활동 재개, 경과 관찰 기준",
+    "bucket": "rag_candidate",
+    "reason": "안면 리프팅 후 부기·멍 경과, 배액관, 세안, 활동 재개 기준이 정리된 환자용 사후관리 문서임.",
+    "embedding_policy": "allow_with_safety_filters",
+    "raw_html_path": "sources/raw_trusted/html/tas_facelift_recovery.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/tas_facelift_recovery.txt",
+    "partitioned_text_path": "sources/trusted_by_use/rag_candidate/tas_facelift_recovery.txt",
+    "text_sha256": "eac073c473fec7b4ca16df5976a5575e8be9ede688c6b7ea2baefc7fb00882a4"
+  },
+  {
+    "slug": "tas_brow_lift_recovery",
+    "title": "The Aesthetic Society brow lift aftercare and recovery",
+    "institution": "The Aesthetic Society",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.theaestheticsociety.org/procedures/head-face/brow-lift/aftercare-recovery",
+    "department": "plastic_surgery",
+    "procedure": "brow_lift",
+    "recommended_use": "이마·눈썹 리프팅 후 부기, 활동 제한, 운동 재개 기준",
+    "bucket": "rag_candidate",
+    "reason": "이마·눈썹 리프팅 후 부기와 활동 제한, 운동 재개 기준이 직접 연결됨.",
+    "embedding_policy": "allow",
+    "raw_html_path": "sources/raw_trusted/html/tas_brow_lift_recovery.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/tas_brow_lift_recovery.txt",
+    "partitioned_text_path": "sources/trusted_by_use/rag_candidate/tas_brow_lift_recovery.txt",
+    "text_sha256": "539e54264621d290a76bbebc56144cd053c86af2def818ba312cb4b92653728d"
+  },
+  {
+    "slug": "tas_neck_lift_recovery",
+    "title": "The Aesthetic Society neck lift aftercare and recovery",
+    "institution": "The Aesthetic Society",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.theaestheticsociety.org/procedures/head-face/neck-lift/aftercare-recovery",
+    "department": "plastic_surgery",
+    "procedure": "neck_lift",
+    "recommended_use": "목 리프팅 후 회복 기간, 절개부 관리, 메이크업 재개 시점",
+    "bucket": "rag_candidate",
+    "reason": "목 리프팅 후 회복 기간, 절개부 관리, 메이크업 재개 시점이 직접 연결됨.",
+    "embedding_policy": "allow",
+    "raw_html_path": "sources/raw_trusted/html/tas_neck_lift_recovery.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/tas_neck_lift_recovery.txt",
+    "partitioned_text_path": "sources/trusted_by_use/rag_candidate/tas_neck_lift_recovery.txt",
+    "text_sha256": "00fab2cc95d80387df289e1d41d246a912f112ca57fb6bc718c6dd1ec5e3287b"
+  },
+  {
+    "slug": "asps_thread_lift",
+    "title": "American Society of Plastic Surgeons thread lift",
+    "institution": "American Society of Plastic Surgeons",
+    "source_type": "professional_patient_guidance",
+    "url": "https://www.plasticsurgery.org/cosmetic-procedures/thread-lift",
+    "department": "plastic_surgery",
+    "procedure": "thread_lift",
+    "recommended_use": "실리프팅 개요와 적합 대상, 시술 후 기대 범위",
+    "bucket": "rag_candidate",
+    "reason": "실리프팅 정의와 적합 대상, 기대 범위가 실리프팅 문의의 맥락 보강에 필요함.",
+    "embedding_policy": "allow",
+    "raw_html_path": "sources/raw_trusted/html/asps_thread_lift.html",
+    "raw_pdf_path": "",
+    "raw_text_path": "sources/raw_trusted/text/asps_thread_lift.txt",
+    "partitioned_text_path": "sources/trusted_by_use/rag_candidate/asps_thread_lift.txt",
+    "text_sha256": "055282f4d3b244db813a46021971bbebbc818c825da2402463482d1e862d9c8a"
   }
 ]
