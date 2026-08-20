@@ -6,7 +6,7 @@
       "path": "rag/mvp_care_knowledge.jsonl",
       "trust_level": "curated",
       "use": "Primary post-care answer guidance",
-      "count": 17
+      "count": 15
     },
     {
       "path": "derived/official_rag_candidate_chunks.jsonl",
